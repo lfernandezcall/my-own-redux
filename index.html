@@ -9,6 +9,18 @@
 </head>
 
 <body>
+    <div>
+        <h1>Todo list </h1>
+        <input id="todo" type="text" placeholder="Add Todo...">
+        <button id="todoBtn">Add Todo</button>
+        <ul id="todos"></ul>
+    </div>
+    <div>
+        <h1>Goal list </h1>
+        <input id="goal" type="text" placeholder="Add Goal...">
+        <button id="goalBtn">Add Goal</button>
+        <ul id="goals"></ul>
+    </div>
     <script type="text/javascript">
         // Library code
         function createStore(reducer) {
@@ -102,16 +114,81 @@
         const store = createStore(app);
 
         store.subscribe(() => {
-            console.log('The new state is ', store.getState());
+            const { goals, todos } = store.getState();
+
+            document.getElementById('goals').innerHTML = '';
+            document.getElementById('todos').innerHTML = '';
+
+            todos.forEach(addTodoToDOM)
+            goals.forEach(addGoalToDOM)
         });
 
-        store.dispatch(
-            addTodoAction({
-                id: 0,
-                name: 'Learn React',
-                complete: false
-            })
-        );
+        const idGenerator = () => Math.random().toString(36).substr(2, 9)
+        const inputHandler = (id) => {
+            const input = document.getElementById(id);
+            const name = input.value;
+            input.value = '';
+
+            return name
+        }
+
+        const addTodo = () => {
+            const name = inputHandler('todo');
+
+            store.dispatch(
+                addTodoAction({
+                    id: idGenerator(),
+                    name,
+                    complete: false
+                })
+            );
+        }
+
+
+        const addGoal = () => {
+            const name = inputHandler('goal');
+
+            store.dispatch(
+                addGoalAction({
+                    id: idGenerator(),
+                    name,
+                    complete: false
+                })
+            );
+        }
+
+        document.getElementById('goalBtn').addEventListener('click', addGoal)
+        document.getElementById('todoBtn').addEventListener('click', addTodo)
+
+
+        const addTodoToDOM = (todo) => {
+            const node = document.createElement('li');
+            const text = document.createTextNode(todo.name);
+
+            node.appendChild(text)
+            document.getElementById('todos').appendChild(node)
+
+            node.insertAdjacentHTML('afterend', `<button id="${todo.id}">✅</button>`)
+            document.getElementById(todo.id).addEventListener('click', () => toggleTodo(todo.id))
+        }
+
+        const toggleTodo = (id) => {
+            const todoNode = document.getElementById(id)
+            todoNode.parentNode.classList.add('completed')
+        }
+
+        // const completeTodo = () => {
+        //     const todo =
+        // }
+
+        const addGoalToDOM = (goal) => {
+            const node = document.createElement('li');
+            const text = document.createTextNode(goal.name);
+            node.appendChild(text)
+
+            document.getElementById('goals').appendChild(node)
+        }
+
     </script>
 </body>
 

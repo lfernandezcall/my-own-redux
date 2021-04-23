@@ -5,8 +5,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>My Own Todo</title>
 </head>
+<style>
+    .completed {
+        text-decoration: line-through;
+    }
+</style>
 
 <body>
     <div>
@@ -116,6 +121,8 @@
         store.subscribe(() => {
             const { goals, todos } = store.getState();
 
+            console.log('Your Todos State is: ', todos)
+
             document.getElementById('goals').innerHTML = '';
             document.getElementById('todos').innerHTML = '';
 
@@ -165,6 +172,7 @@
             const node = document.createElement('li');
             const text = document.createTextNode(todo.name);
 
+            node.classList.add('todoItem')
             node.appendChild(text)
             document.getElementById('todos').appendChild(node)
 
@@ -174,7 +182,7 @@
 
         const toggleTodo = (id) => {
             const todoNode = document.getElementById(id)
-            todoNode.parentNode.classList.add('completed')
+            todoNode.previousSibling.classList.add('completed')
         }
 
         // const completeTodo = () => {

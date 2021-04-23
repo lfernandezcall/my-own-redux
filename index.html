@@ -11,6 +11,15 @@
     .completed {
         text-decoration: line-through;
     }
+
+    li {
+        display: inline;
+    }
+
+    ul button {
+        border: none;
+        background: none;
+    }
 </style>
 
 <body>
@@ -63,6 +72,8 @@
         }
 
         function removeTodoAction(id) {
+            console.log('Deleting todo with id: ', id)
+
             return {
                 type: 'REMOVE_TODO',
                 id
@@ -75,14 +86,14 @@
                 id
             };
         }
-        
+
         function addGoalAction(goal) {
             return {
                 type: 'ADD_GOAL',
                 goal
             };
         }
-        
+
         function removeGoalAction(id) {
             return {
                 type: 'REMOVE_GOAL',
@@ -90,15 +101,7 @@
             };
         }
 
-        function toggleGoalAction(id) {
-            return {
-                type: 'TOGGLE_GOAL',
-                id
-            };
-        }
-
         function todos(state = [], action) {
-            console.log(action)
 
             const todoActions = {
                 ADD_TODO: state.concat([action.todo]),
@@ -112,8 +115,7 @@
         function goals(state = [], action) {
             const goalsActions = {
                 ADD_GOAL: state.concat([action.goal]),
-                REMOVE_GOAL: state.filter((goal) => goal.id !== action.id),
-                TOGGLE_GOAL: state.map((goal) => (goal.id === action.id ? { ...goal, complete: !goal.complete } : goal))
+                REMOVE_GOAL: state.filter((goal) => goal.id !== action.id)
             };
 
             return goalsActions[action.type] || state;
@@ -159,6 +161,18 @@
             );
         }
 
+        const removeTodo = (id) => {
+            store.dispatch(
+                removeTodoAction(id)
+            )
+        }
+
+        const toggleTodo = (id) => {
+            store.dispatch(
+                toggleTodoAction(id)
+            );
+        }
+
 
         const addGoal = () => {
             const name = inputHandler('goal');
@@ -172,17 +186,12 @@
             );
         }
 
-        const toggleTodo = (id) => {
+        const removeGoal = (id) => {
             store.dispatch(
-                toggleTodoAction(id)
-            );
+                removeGoalAction(id)
+            )
         }
 
-        const toggleGoal = (id) => {
-            store.dispatch(
-                toggleGoalAction(id)
-            );
-        }
 
         document.getElementById('goalBtn').addEventListener('click', addGoal)
         document.getElementById('todoBtn').addEventListener('click', addTodo)
@@ -195,10 +204,11 @@
             node.classList.add('todoItem')
             node.appendChild(text)
             document.getElementById('todos').appendChild(node)
-
-            node.insertAdjacentHTML('afterend', `<button id="${todo.id}">✅</button>`)
-            document.getElementById(todo.id).addEventListener('click', () => toggleTodo(todo.id))
             todo.complete === true && node.classList.add('completed')
+            node.addEventListener('click', () => toggleTodo(todo.id))
+
+            node.insertAdjacentHTML('afterend', `<button id="${todo.id}">🗑</button>`)
+            document.getElementById(todo.id).addEventListener('click', () => removeTodo(todo.id))
         }
 
         const addGoalToDOM = (goal) => {
@@ -209,9 +219,8 @@
             node.appendChild(text)
             document.getElementById('goals').appendChild(node)
 
-            node.insertAdjacentHTML('afterend', `<button id="${goal.id}">✅</button>`)
-            document.getElementById(goal.id).addEventListener('click', () => toggleGoal(goal.id))
-            goal.complete === true && node.classList.add('completed')
+            node.insertAdjacentHTML('afterend', `<button id="${goal.id}">🗑</button>`)
+            document.getElementById(goal.id).addEventListener('click', () => removeGoal(goal.id))
         }
 
     </script>

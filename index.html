@@ -91,6 +91,13 @@
             return goalsActions[action.type] || state;
         }
 
+        const checkAndDispatch = (store, action) => {
+            const { type, todo: {name}} = action;
+
+            type.includes('ADD') && name.toLowerCase().includes('bitcoin') ?
+                alert('This ia a bad idea') : store.dispatch(action)
+        }
+
         const store = Redux.createStore(Redux.combineReducers({
             todos,
             goals
@@ -118,7 +125,7 @@
         const addTodo = () => {
             const name = inputHandler('todo');
 
-            store.dispatch(
+            checkAndDispatch(store, 
                 addTodoAction({
                     id: idGenerator(),
                     name,
@@ -128,13 +135,13 @@
         }
 
         const removeTodo = (id) => {
-            store.dispatch(
+            checkAndDispatch(store, 
                 removeTodoAction(id)
             )
         }
 
         const toggleTodo = (id) => {
-            store.dispatch(
+            checkAndDispatch(store, 
                 toggleTodoAction(id)
             );
         }
@@ -143,7 +150,7 @@
         const addGoal = () => {
             const name = inputHandler('goal');
 
-            store.dispatch(
+            checkAndDispatch(store, 
                 addGoalAction({
                     id: idGenerator(),
                     name,
@@ -153,7 +160,7 @@
         }
 
         const removeGoal = (id) => {
-            store.dispatch(
+            checkAndDispatch(store, 
                 removeGoalAction(id)
             )
         }

@@ -219,15 +219,17 @@
     </script>
     <!-- REACT CODE -->
     <script type="text/babel">
-        const TodosList = (props) => {
+        const List = (props) => {
+            const {items, toggle, remove} = props;
+
             return (
                 <ul>
-                    {props.todos.map(todo => {
-                        const { id, name, complete } = todo;
+                    {items.map(item => {
+                        const { id, name, complete } = item;
                         return (
                             <li key={id}>
-                                <span onClick={() => props.toggle(id)} key={`span_${id}`} className={complete === true ? 'completed' : ''}>{name}</span>
-                                <button onClick={() => props.remove(id)} key={`button_${id}`}>🗑</button>
+                                <span onClick={() => toggle && toggle(id)} key={`span_${id}`} className={complete === true ? 'completed' : ''}>{name}</span>
+                                <button onClick={() => remove(item)} key={`button_${id}`}>🗑</button>
                             </li>
                         )
                     })}
@@ -256,9 +258,9 @@
                 );
             }
 
-            removeTodo = (id) => {
+            removeTodo = (todo) => {
                 this.props.store.dispatch(
-                    removeTodoAction(id)
+                    removeTodoAction(todo.id)
                 );
             }
 
@@ -272,26 +274,10 @@
                             ref={(input) => this.input = input}
                         />
                         <button onClick={this.addItem}>Add Todo</button>
-                        <TodosList todos={this.props.todos} toggle={this.toggleTodo} remove={this.removeTodo}/>
+                        <List items={this.props.todos} toggle={this.toggleTodo} remove={this.removeTodo}/>
                     </div>
                 )
             }
-        }
-
-        const GoalsList = (props) => {
-            return (
-                <ul>
-                    {props.goals.map(goal => {
-                        const { id, name } = goal;
-                        return (
-                            <li key={id}>
-                                <span key={`span_${id}`}>{name}</span>
-                                <button onClick={() => props.remove(id)} key={`button_${id}`}>🗑</button>
-                            </li>
-                        )
-                    })}
-                </ul>
-            )
         }
 
         class Goals extends React.Component {
@@ -308,9 +294,9 @@
                 );
             }
 
-            removeGoal = (id) => {
+            removeGoal = (goal) => {
                 this.props.store.dispatch(
-                    removeGoalAction(id)
+                    removeGoalAction(goal.id)
                 );
             }
 
@@ -324,7 +310,7 @@
                             ref={(input) => this.input = input}
                         />
                         <button onClick={this.addItem}>Add Goal</button>
-                        <GoalsList goals={this.props.goals} remove={this.removeGoal}/>
+                        <List items={this.props.goals} remove={this.removeGoal}/>
                     </div>
                 )
             }

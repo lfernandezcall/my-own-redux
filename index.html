@@ -17,7 +17,7 @@
         text-decoration: line-through;
     }
 
-    li span{
+    li span {
         display: inline;
     }
 
@@ -31,7 +31,7 @@
     <div id="app"></div>
 
     <script type="text/javascript">
-    // App code
+        // App code
         const ADD_TODO = 'ADD_TODO';
         const REMOVE_TODO = 'REMOVE_TODO';
         const TOGGLE_TODO = 'TOGGLE_TODO';
@@ -103,6 +103,10 @@
             return goalsActions[action.type] || state;
         }
 
+        const loading = (state = true, action) => {
+            return action.type === RECEIVE_DATA ? false : state
+        }
+
         const checker = (store) => (next) => (action) => {
             const actionType = action.type.toLowerCase().split('_')
             const detectBitcoin = actionType[0] === 'add' && action[actionType[1]].name.toLowerCase().includes('bitcoin')
@@ -116,23 +120,16 @@
             const result = next(action)
             console.log('The new State: ', store.getState())
             console.groupEnd();
-            
+
             return result
         }
 
 
         const store = Redux.createStore(Redux.combineReducers({
             todos,
-            goals
+            goals,
+            loading
         }), Redux.applyMiddleware(checker, logger))
-
-
-        // store.subscribe(() => {
-        //     const { goals, todos } = store.getState();
-
-        //     todos.forEach(addTodoToDOM)
-        //     goals.forEach(addGoalToDOM)
-        // });
 
         const idGenerator = () => Math.random().toString(36).substr(2, 9);
 
@@ -211,27 +208,30 @@
             addItem = (e) => {
                 e.preventDefault()
                 const name = this.input.value
-                this.input.value = ''
-
-                this.props.store.dispatch(
-                    addTodoAction({
-                        id: idGenerator(),
-                        name,
-                        complete: false
-                    })
-                );
+                API.saveTodo(name).then((todo) => {
+                    this.props.store.dispatch(
+                        addTodoAction(todo)
+                    );
+                    this.input.value = ''
+                }).catch(() => alert(`Sorry we wewre not able to save the todo: ${name}`))
             }
 
             toggleTodo = (id) => {
                 this.props.store.dispatch(
                     toggleTodoAction(id)
                 );
+                API.saveTodoToggle(id).catch(() => {
+                    this.props.store.dispatch(toggleTodoAction(id))
+                    alert(`An error ocurred in the API toggling the todo with id: ${id}`)
+                })
             }
 
             removeTodo = (todo) => {
-                this.props.store.dispatch(
-                    removeTodoAction(todo.id)
-                );
+                this.props.store.dispatch(removeTodoAction(todo.id))
+                API.deleteTodo(todo.id).catch(() => {
+                    this.props.store.dispatch(addTodoAction(todo))
+                    alert(`An error ocurred in the API deleting the todo: ${todo.name}`)
+                })
             }
 
             render() {
@@ -268,6 +268,10 @@
                 this.props.store.dispatch(
                     removeGoalAction(goal.id)
                 );
+                API.deleteTodo(goal.id).catch(() => {
+                    this.props.store.dispatch(addGoalAction(goal))
+                    alert(`An error ocurred in the API deleting the goal: ${goal.name}`)
+                })
             }
 
             render() {
@@ -290,21 +294,19 @@
             componentDidMount() {
                 const { store } = this.props;
 
-                store.subscribe(() => this.forceUpdate())
-
                 Promise.all([API.fetchTodos(), API.fetchGoals()]).then(([todos, goals]) => store.dispatch(receiveDataAction(todos, goals))
                 )
+                store.subscribe(() => this.forceUpdate())
             }
             render() {
                 const { store } = this.props
-                const { todos, goals } = store.getState()
+                const { todos, goals, loading } = store.getState()
 
-                return (
+                return loading === true ? <h3>Loading</h3> :
                     <div>
                         <Todos id="todos" todos={todos} store={this.props.store} />
                         <Goals id="goals" goals={goals} store={this.props.store} />
                     </div>
-                )
             }
         }
         ReactDOM.render(

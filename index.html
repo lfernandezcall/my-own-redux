@@ -131,59 +131,6 @@
             goals,
             loading
         }), Redux.applyMiddleware(checker, logger))
-
-        const idGenerator = () => Math.random().toString(36).substr(2, 9);
-
-        const inputHandler = (id) => {
-            const input = document.getElementById(id);
-            const name = input.value;
-            input.value = '';
-
-            return name
-        }
-
-        const addTodo = () => {
-            const name = inputHandler('todo');
-
-            store.dispatch(
-                addTodoAction({
-                    id: idGenerator(),
-                    name,
-                    complete: false
-                })
-            );
-        }
-
-        const removeTodo = (id) => {
-            store.dispatch(
-                removeTodoAction(id)
-            )
-        }
-
-        const toggleTodo = (id) => {
-            store.dispatch(
-                toggleTodoAction(id)
-            );
-        }
-
-
-        const addGoal = () => {
-            const name = inputHandler('goal');
-
-            store.dispatch(
-                addGoalAction({
-                    id: idGenerator(),
-                    name,
-                    complete: false
-                })
-            );
-        }
-
-        const removeGoal = (id) => {
-            store.dispatch(
-                removeGoalAction(id)
-            )
-        }
     </script>
     <!-- REACT CODE -->
     <script type="text/babel">

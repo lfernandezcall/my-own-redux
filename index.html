@@ -83,6 +83,71 @@
             }
         }
 
+        const handleAddTodo = (name, callback) => {
+            return (dispatch) => {
+                API.saveTodo(name)
+                    .then((todo) => {
+                        dispatch(addTodoAction(todo, callback()))
+                    })
+                    .catch((error) => {
+                        console.error(error)
+                        alert(`An error ocurred in the API adding the todo: ${name}`)
+                    })
+            }
+        }
+
+        const handleToggleTodo = (id) => {
+            return (dispatch) => {
+                dispatch(toggleTodoAction(id))
+                API.saveTodoToggle(id)
+                    .catch(() => {
+                        dispatch(toggleTodoAction(id))
+                        alert('An error occurred when trying to toggle todo')
+                    })
+            }
+        }
+
+        const handleDeleteTodo = (todo) => {
+            return (dispatch) => {
+                dispatch(removeTodoAction(todo.id))
+                API.deleteTodo(todo.id).catch(() => {
+                    dispatch(addTodoAction(todo))
+                    alert(`An error occurred in the API deleting the todo: ${todo.name}`)
+                })
+            }
+        }
+
+        const handleAddGoal = (name, callback) => {
+            console.log('Adding Goal: ', name)
+            return (dispatch) => {
+                API.saveGoal(name)
+                    .then((goal) => {
+                        dispatch(addGoalActionn(goal, callback()))
+                    })
+                    .catch((error) => {
+                        console.error(error)
+                        alert(`An error occurred in the API adding the goal: ${name}`)
+                    })
+            }
+        }
+
+        const handleDeleteGoal = (goal) => {
+            return (dispatch) => {
+                dispatch(removeGoalAction(goal.id))
+                API.deleteGoal(goal.id).catch(() => {
+                    dispatch(addGoalAction(goal))
+                    alert(`An error occurred in the API deleting the todo: ${goal.name}`)
+                })
+            }
+        }
+
+        const handleInitialData = () => {
+           return (dispatch) => Promise.all([API.fetchTodos(), API.fetchGoals()])
+                                .then(([todos, goals]) => dispatch(receiveDataAction(todos, goals))
+            )
+        }
+
+        //REDUCERS
         const todos = (state = [], action) => {
             const todoActions = {
                 [ADD_TODO]: state.concat([action.todo]),
@@ -108,6 +173,7 @@
             return action.type === RECEIVE_DATA ? false : state
         }
 
+        //MIDDLEWARE
         const checker = (store) => (next) => (action) => {
             const actionType = action.type.toLowerCase().split('_')
             const detectBitcoin = actionType[0] === 'add' && action[actionType[1]].name.toLowerCase().includes('bitcoin')
@@ -125,12 +191,16 @@
             return result
         }
 
+        const thunk = (store) => (next) => (action) => {
+            return typeof action === 'function' ? action(store.dispatch) : next(action)
+        }
 
+        //STORE
         const store = Redux.createStore(Redux.combineReducers({
             todos,
             goals,
             loading
-        }), Redux.applyMiddleware(checker, logger))
+        }), Redux.applyMiddleware(ReduxThunk.default, checker, logger))
     </script>
     <!-- REACT CODE -->
     <script type="text/babel">
@@ -153,33 +223,25 @@
         }
 
         class Todos extends React.Component {
-            addItem = (e) => {
+            addTodo = (e) => {
                 e.preventDefault()
-                const name = this.input.value
-                API.saveTodo(name).then((todo) => {
-                    this.props.store.dispatch(
-                        addTodoAction(todo)
-                    );
-                    this.input.value = ''
-                }).catch(() => alert(`Sorry we were not able to save the todo: ${name}`))
+
+                this.props.store.dispatch(handleAddTodo(this.input.value, () => this.input.value = ''))
             }
 
             toggleTodo = (id) => {
-                this.props.store.dispatch(
-                    toggleTodoAction(id)
-                );
-                API.saveTodoToggle(id).catch(() => {
-                    this.props.store.dispatch(toggleTodoAction(id))
-                    alert(`An error ocurred in the API toggling the todo with id: ${id}`)
-                })
+                this.props.store.dispatch(handleToggleTodo(id))
+                // this.props.store.dispatch(
+                //     toggleTodoAction(id)
+                // );
+                // API.saveTodoToggle(id).catch(() => {
+                //     this.props.store.dispatch(toggleTodoAction(id))
+                //     alert(`An error ocurred in the API toggling the todo with id: ${id}`)
+                // })
             }
 
             removeTodo = (todo) => {
-                this.props.store.dispatch(removeTodoAction(todo.id))
-                API.deleteTodo(todo.id).catch(() => {
-                    this.props.store.dispatch(addTodoAction(todo))
-                    alert(`An error ocurred in the API deleting the todo: ${todo.name}`)
-                })
+                this.props.store.dispatch(handleDeleteTodo(todo))
             }
 
             render() {
@@ -191,7 +253,7 @@
                             placeholder="Add Todo"
                             ref={(input) => this.input = input}
                         />
-                        <button onClick={this.addItem}>Add Todo</button>
+                        <button onClick={this.addTodo}>Add Todo</button>
                         <List items={this.props.todos} toggle={this.toggleTodo} remove={this.removeTodo} />
                     </div>
                 )
@@ -199,25 +261,14 @@
         }
 
         class Goals extends React.Component {
-            addItem = (e) => {
+            addGoal = (e) => {
                 e.preventDefault()
-                const name = this.input.value
-                API.saveGoal(name).then((goal) => {
-                    this.props.store.dispatch(
-                        addGoalAction(goal)
-                    );
-                    this.input.value = ''
-                }).catch(() => alert(`Sorry we were not able to save the goal: ${name}`))
+
+                this.props.store.dispatch(handleAddGoal(this.input.value, () => this.input.value = ''))
             }
 
             removeGoal = (goal) => {
-                this.props.store.dispatch(
-                    removeGoalAction(goal.id)
-                );
-                API.deleteTodo(goal.id).catch(() => {
-                    this.props.store.dispatch(addGoalAction(goal))
-                    alert(`An error ocurred in the API deleting the goal: ${goal.name}`)
-                })
+                this.props.store.dispatch(handleDeleteGoal(goal));
             }
 
             render() {
@@ -229,7 +280,7 @@
                             placeholder="Add Goal"
                             ref={(input) => this.input = input}
                         />
-                        <button onClick={this.addItem}>Add Goal</button>
+                        <button onClick={this.addGoal}>Add Goal</button>
                         <List items={this.props.goals} remove={this.removeGoal} />
                     </div>
                 )
@@ -240,8 +291,8 @@
             componentDidMount() {
                 const { store } = this.props;
 
-                Promise.all([API.fetchTodos(), API.fetchGoals()]).then(([todos, goals]) => store.dispatch(receiveDataAction(todos, goals))
-                )
+                this.props.store.dispatch(handleInitialData())
+
                 store.subscribe(() => this.forceUpdate())
             }
             render() {

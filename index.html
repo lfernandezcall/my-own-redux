@@ -296,61 +296,15 @@
             }
         }
 
-        const ConnectedApp = connect((state) => ({ loading: state.loading }))(App)
-        const ConnectedTodos = connect((state) => ({ todos: state.todos }))(Todos)
-        const ConnectedGoals = connect((state) => ({ goals: state.goals }))(Goals)
-        const Context = React.createContext();
+        const ConnectedApp = ReactRedux.connect((state) => ({ loading: state.loading }))(App)
+        const ConnectedTodos = ReactRedux.connect((state) => ({ todos: state.todos }))(Todos)
+        const ConnectedGoals = ReactRedux.connect((state) => ({ goals: state.goals }))(Goals)
 
-        function connect(mapStateToProps) {
-            return (Component) => {
-                class Reciever extends React.Component {
-                    componentDidMount() {
-                        const { subscribe } = this.props.store
-                        this.unsubscribe = subscribe(() => {
-                            this.forceUpdate()
-                        })
-                    }
-
-                    componentWillUnmount() {
-                        this.unsubscribe()
-                    }
-
-                    render() {
-                        const { getState, dispatch } = this.props.store
-                        const stateNeeded = mapStateToProps(getState())
-                        return (
-                            <Component {...stateNeeded} dispatch={dispatch} />
-                        )
-                    }
-                }
-
-                class ConnectedComponent extends React.Component {
-                    render() {
-                        return (
-                            <Context.Consumer>
-                                {(store) => < Reciever store={store} />}
-                            </Context.Consumer>
-                        )
-                    }
-                }
-                return ConnectedComponent
-            }
-        }
-
-        class Provider extends React.Component {
-            render() {
-                return (
-                    <Context.Provider value={this.props.store}>
-                        {this.props.children}
-                    </Context.Provider>
-                )
-            }
-        }
 
         ReactDOM.render(
-            <Provider store={store}>
+            <ReactRedux.Provider store={store}>
                 <ConnectedApp />
-            </Provider>,
+            </ReactRedux.Provider>,
             document.getElementById('app')
         )
     </script>
